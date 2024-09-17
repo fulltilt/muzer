@@ -37,3 +37,4 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 docker run -p 5432:5432 -e POSTGRES_PASSWORD=randompassword postgres
 npx prisma migrate dev
+npx prisma generate

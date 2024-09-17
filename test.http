@@ -1,0 +1,10 @@
+POST http://localhost:3000/api/streams HTTP/1.1
+content-type: application/json
+
+{
+    "creatorId": "df04f1e1-7f23-426e-975f-903c299e3036",
+    "url": "https://www.youtube.com/watch?v=GhH1QWY6BDc"
+}
+
+GET http://localhost:3000/api/streams?creatorId=df04f1e1-7f23-426e-975f-903c299e3036 HTTP/1.1
+content-type: application/json
