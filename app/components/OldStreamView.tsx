@@ -63,7 +63,7 @@ interface CustomSession extends Omit<Session, "user"> {
   };
 }
 
-const REFRESH_INTERVAL_MS = 10 * 1000;
+const REFRESH_INTERVAL_MS = 100 * 1000;
 
 export default function StreamView({
   creatorId,
@@ -89,7 +89,6 @@ export default function StreamView({
       const res = await fetch(`/api/streams/?creatorId=${creatorId}`, {
         credentials: "include",
       });
-      console.log(res);
       const json = await res.json();
       if (json.streams && Array.isArray(json.streams)) {
         setQueue(
@@ -119,7 +118,6 @@ export default function StreamView({
   }
 
   useEffect(() => {
-    console.log("creatorId", creatorId);
     refreshStreams();
     const interval = setInterval(refreshStreams, REFRESH_INTERVAL_MS);
     return () => clearInterval(interval);

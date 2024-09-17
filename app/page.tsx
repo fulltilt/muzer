@@ -9,8 +9,7 @@ import { authOptions } from "@/lib/auth-options";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
-  console.log(session);
-  // if (session?.user.id) redirect("/dashboard");
+  if (session?.user.id) redirect("/dashboard");
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">

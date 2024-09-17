@@ -4,6 +4,8 @@ import { z } from "zod";
 // @ts-ignore
 import youtubesearchapi from "youtube-search-api";
 import { YOUTUBE_REGEX } from "@/lib/utils";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth-options";
 
 const CreateStreamSchema = z.object({
   creatorId: z.string(),
@@ -12,6 +14,20 @@ const CreateStreamSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    console.log(session);
+    if (!session?.user.id) {
+      return NextResponse.json(
+        {
+          message: "Unauthenticated",
+        },
+        {
+          status: 403,
+        }
+      );
+    }
+    const user = session.user;
+
     const data = CreateStreamSchema.parse(await req.json());
     const isYt = data.url.match(YOUTUBE_REGEX);
     if (!isYt) {
@@ -36,15 +52,19 @@ export async function POST(req: NextRequest) {
     const stream = await prismaClient.stream.create({
       data: {
         userId: data.creatorId,
+        addedBy: user.id,
         url: data.url,
         extractedId,
         type: "Youtube",
         title: res.title ?? "Can't find video",
         smallImg:
-          thumbnails.length > 1
+          (thumbnails.length > 1
             ? thumbnails[thumbnails.length - 2].url
-            : thumbnails[thumbnails.length - 1].url ?? "weqaeaw",
-        bigImg: thumbnails[thumbnails.length - 1].url ?? "bjbjbkj",
+            : thumbnails[thumbnails.length - 1].url) ??
+          "https://cdn.pixabay.com/photo/2024/02/28/07/42/european-shorthair-8601492_640.jpg",
+        bigImg:
+          thumbnails[thumbnails.length - 1].url ??
+          "https://cdn.pixabay.com/photo/2024/02/28/07/42/european-shorthair-8601492_640.jpg",
       },
     });
 
@@ -67,13 +87,63 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   const creatorId = req.nextUrl.searchParams.get("creatorId");
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user.id) {
+    return NextResponse.json(
+      {
+        message: "Unauthenticated",
+      },
+      {
+        status: 403,
+      }
+    );
+  }
+  const user = session.user;
+
+  if (!creatorId) {
+    return NextResponse.json(
+      {
+        message: "Error",
+      },
+      {
+        status: 411,
+      }
+    );
+  }
+
   const streams = await prismaClient.stream.findMany({
     where: {
-      userId: creatorId ?? "",
+      userId: creatorId,
+      // played: false,
+    },
+    include: {
+      _count: {
+        select: {
+          upvotes: true,
+        },
+      },
+      upvotes: {
+        where: {
+          userId: user.id,
+        },
+      },
     },
   });
 
+  const isCreator = user.id === creatorId;
+
   return NextResponse.json({
-    streams,
+    streams: streams.map(({ _count, ...rest }) => ({
+      ...rest,
+      upvotes: _count.upvotes,
+      haveUpvoted: rest.upvotes.length ? true : false,
+    })),
+    // activeStream,
+    creatorId,
+    isCreator,
   });
+  // return NextResponse.json({
+  //   streams,
+  // });
 }

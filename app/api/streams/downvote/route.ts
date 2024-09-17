@@ -1,3 +1,4 @@
+import { authOptions } from "@/lib/auth-options";
 import prismaClient from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
@@ -8,16 +9,9 @@ const DownvoteSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
 
-  // TODO: you can get rid of the db call here
-  const user = await prismaClient.user.findFirst({
-    where: {
-      email: session?.user?.email ?? "",
-    },
-  });
-
-  if (!user) {
+  if (!session?.user.id) {
     return NextResponse.json(
       {
         message: "Unauthenticated",
@@ -27,6 +21,7 @@ export async function POST(req: NextRequest) {
       }
     );
   }
+  const user = session.user;
 
   try {
     const data = DownvoteSchema.parse(await req.json());
@@ -37,6 +32,10 @@ export async function POST(req: NextRequest) {
           streamId: data.streamId,
         },
       },
+    });
+
+    return NextResponse.json({
+      message: "Done!",
     });
   } catch (e) {
     return NextResponse.json(
