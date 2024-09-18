@@ -54,8 +54,7 @@ export default function Creator({
   //   return <ErrorScreen>Please Log in....</ErrorScreen>;
   // }
 
-  // return <StreamView creatorId={creatorId} playVideo={false} />;
-  return <StreamView creatorId={user?.id ?? ""} playVideo={true} />;
+  return <StreamView creatorId={creatorId} playVideo={false} />;
 }
 
 export const dynamic = "auto";

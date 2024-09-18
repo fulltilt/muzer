@@ -112,24 +112,34 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const streams = await prismaClient.stream.findMany({
-    where: {
-      userId: creatorId,
-      // played: false,
-    },
-    include: {
-      _count: {
-        select: {
-          upvotes: true,
+  const [streams, activeStream] = await Promise.all([
+    prismaClient.stream.findMany({
+      where: {
+        userId: creatorId,
+        played: false,
+      },
+      include: {
+        _count: {
+          select: {
+            upvotes: true,
+          },
+        },
+        upvotes: {
+          where: {
+            userId: user.id,
+          },
         },
       },
-      upvotes: {
-        where: {
-          userId: user.id,
-        },
+    }),
+    prismaClient.currentStream.findFirst({
+      where: {
+        userId: creatorId,
       },
-    },
-  });
+      include: {
+        stream: true,
+      },
+    }),
+  ]);
 
   const isCreator = user.id === creatorId;
 
@@ -139,11 +149,8 @@ export async function GET(req: NextRequest) {
       upvotes: _count.upvotes,
       haveUpvoted: rest.upvotes.length ? true : false,
     })),
-    // activeStream,
+    activeStream,
     creatorId,
     isCreator,
   });
-  // return NextResponse.json({
-  //   streams,
-  // });
 }
