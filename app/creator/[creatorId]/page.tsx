@@ -16,45 +16,46 @@ export default function Creator({
     creatorId: string;
   };
 }) {
-  const { socket, user, connectionError, loading, setUser } = useSocket();
+  // const { socket, user, connectionError, loading, setUser } = useSocket();
+  const session = useSession();
+  const user = session.data?.user;
   useRedirect();
 
   useEffect(() => {
-    if (user && !user.token) {
-      const token = jwt.sign(
-        {
-          creatorId: creatorId,
-          userId: user.id,
-        },
-        process.env.NEXT_PUBLIC_SECRET ?? "secret"
-      );
-
-      socket?.send(
-        JSON.stringify({
-          type: "join-room",
-          data: {
-            token,
-          },
-        })
-      );
-
-      setUser({ ...user, token });
-    }
+    // if (user && !user.token) {
+    //   const token = jwt.sign(
+    //     {
+    //       creatorId: creatorId,
+    //       userId: user.id,
+    //     },
+    //     process.env.NEXT_PUBLIC_SECRET ?? "secret"
+    //   );
+    //   socket?.send(
+    //     JSON.stringify({
+    //       type: "join-room",
+    //       data: {
+    //         token,
+    //       },
+    //     })
+    //   );
+    //   setUser({ ...user, token });
+    // }
   }, [user]);
 
-  if (connectionError) {
-    return <ErrorScreen>Cannot connect to socket server</ErrorScreen>;
-  }
+  // if (connectionError) {
+  //   return <ErrorScreen>Cannot connect to socket server</ErrorScreen>;
+  // }
 
-  if (loading) {
-    return <LoadingScreen />;
-  }
+  // if (loading) {
+  //   return <LoadingScreen />;
+  // }
 
-  if (!user) {
-    return <ErrorScreen>Please Log in....</ErrorScreen>;
-  }
+  // if (!user) {
+  //   return <ErrorScreen>Please Log in....</ErrorScreen>;
+  // }
 
-  return <StreamView creatorId={creatorId} playVideo={false} />;
+  // return <StreamView creatorId={creatorId} playVideo={false} />;
+  return <StreamView creatorId={user?.id ?? ""} playVideo={true} />;
 }
 
 export const dynamic = "auto";
